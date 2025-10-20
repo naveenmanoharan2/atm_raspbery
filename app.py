@@ -1,12 +1,36 @@
+import os, sqlite3, bcrypt, pygame, json, time
 from flask import Flask, render_template, request, redirect, url_for, session
-import sqlite3, bcrypt, os, json, time, pygame
 
-# ---------------- Config ----------------
 app = Flask(__name__)
 app.secret_key = "supersecurekey"
-DB = "atm.db"
+
+# ----- Always use absolute path -----
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB = os.path.join(BASE_DIR, "atm.db")
+# ------------------------------------
+
 pygame.mixer.init()
 current_lang = "en"
+
+# --- Auto initialize database if missing ---
+conn = sqlite3.connect(DB)
+cur = conn.cursor()
+cur.execute("""
+CREATE TABLE IF NOT EXISTS accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  card_id TEXT UNIQUE,
+  name TEXT,
+  pin_hash BLOB,
+  balance INTEGER DEFAULT 0
+)
+""")
+cur.execute("SELECT COUNT(*) FROM accounts")
+if cur.fetchone()[0] == 0:
+    cur.execute("INSERT INTO accounts (card_id,name,pin_hash,balance) VALUES (?,?,?,?)",
+                ("1001", "Naveen", bcrypt.hashpw(b"1234", bcrypt.gensalt()), 50000))
+    conn.commit()
+conn.close()
+# -------------------------------------------
 
 # ------------- Helpers ------------------
 def play_sound(name):
