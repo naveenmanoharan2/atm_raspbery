@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  </head>
-  <body>
-    <h2>Welcome, Card {{ card }}</h2>
-    <p>💰 Current Balance: AED {{ "%.2f"|format(balance) }}</p>
-    <form method="POST" action="/withdraw">
-      <input type="hidden" name="card" value="{{ card }}">
-      <label>Withdraw Amount:</label><br>
-      <input type="number" step="0.01" name="amount" required><br><br>
-      <button type="submit">Withdraw</button>
-    </form>
-    <br>
-    <a href="/">Logout</a>
-  </body>
+<head>
+  <title>ATM Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>💳 Card: {{ card }}</h2>
+  <p class="balance">💰 Balance: AED {{ "%.2f"|format(balance) }}</p>
+
+  <form method="POST" action="/withdraw">
+    <input type="hidden" name="card" value="{{ card }}">
+    <label>Withdraw Amount:</label><br>
+    <input type="number" step="0.01" name="amount" required><br>
+    <button type="submit" class="btn-red">Withdraw</button>
+  </form>
+
+  <form method="POST" action="/deposit">
+    <input type="hidden" name="card" value="{{ card }}">
+    <label>Deposit Amount:</label><br>
+    <input type="number" step="0.01" name="amount" required><br>
+    <button type="submit" class="btn-green">Deposit</button>
+  </form>
+
+  <a class="btn" href="/history/{{ card }}">📜 View History</a>
+  <a class="btn" href="/">Logout</a>
+</body>
 </html>
