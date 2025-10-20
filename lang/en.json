@@ -1,0 +1,11 @@
+{
+  "login_title": "ATM Login",
+  "card": "Card ID",
+  "pin": "Enter PIN",
+  "login_btn": "Login",
+  "welcome": "Welcome",
+  "withdraw": "Withdraw",
+  "deposit": "Deposit",
+  "balance": "Balance",
+  "exit": "Exit"
+}

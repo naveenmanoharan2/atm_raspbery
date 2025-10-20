@@ -1,118 +1,102 @@
-from flask import Flask, render_template, request, redirect, url_for
-import sqlite3, bcrypt, os, datetime
+from flask import Flask, render_template, request, redirect, url_for, session
+import sqlite3, bcrypt, os, json, time, pygame
 
+# ---------------- Config ----------------
 app = Flask(__name__)
-DB_FILE = "atm.db"
+app.secret_key = "supersecurekey"
+DB = "atm.db"
+pygame.mixer.init()
+current_lang = "en"
 
-# ---------- DB setup ----------
-def init_db():
-    if not os.path.exists(DB_FILE):
-        conn = sqlite3.connect(DB_FILE)
-        cur = conn.cursor()
-        cur.execute("""
-        CREATE TABLE users(
-            card_number TEXT PRIMARY KEY,
-            pin_hash BLOB NOT NULL,
-            balance REAL DEFAULT 1000.0
-        );
-        """)
-        cur.execute("""
-        CREATE TABLE transactions(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            card_number TEXT,
-            type TEXT,
-            amount REAL,
-            timestamp TEXT
-        );
-        """)
-        pin = b"1234"
-        hashed = bcrypt.hashpw(pin, bcrypt.gensalt())
-        cur.execute("INSERT INTO users VALUES (?, ?, ?)", ("123456", hashed, 1000.0))
-        conn.commit()
-        conn.close()
+# ------------- Helpers ------------------
+def play_sound(name):
+    path = os.path.join("static", "sounds", f"{name}.wav")
+    if os.path.exists(path):
+        pygame.mixer.music.load(path)
+        pygame.mixer.music.play()
 
-init_db()
+def get_text(key):
+    with open(f"lang/{current_lang}.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get(key, key)
 
-# ---------- Routes ----------
-@app.route('/')
-def index():
-    return render_template('index.html')
+def get_db():
+    return sqlite3.connect(DB)
 
-@app.route('/login', methods=['GET','POST'])
+# ------------- Routes -------------------
+@app.route("/lang/<lang>")
+def switch_lang(lang):
+    global current_lang
+    if lang in ["en", "hi", "ta"]:
+        current_lang = lang
+    return redirect(url_for("login"))
+
+@app.route("/")
 def login():
-    if request.method == 'POST':
-        card = request.form['card']
-        pin = request.form['pin'].encode('utf-8')
-        conn = sqlite3.connect(DB_FILE)
-        cur = conn.cursor()
-        cur.execute("SELECT pin_hash,balance FROM users WHERE card_number=?", (card,))
-        row = cur.fetchone()
-        conn.close()
+    play_sound("welcome")
+    texts = {k: get_text(k) for k in ["login_title","card","pin","login_btn"]}
+    return render_template("login.html", **texts)
 
-        if row and bcrypt.checkpw(pin, row[0]):
-            return redirect(url_for('dashboard', card=card))
-        else:
-            return render_template('error.html', message="Invalid card or PIN!")
-    return render_template('login.html')
+@app.route("/login", methods=["POST"])
+def do_login():
+    card_id = request.form["card_id"]
+    pin     = request.form["pin"].encode()
 
-@app.route('/dashboard/<card>')
-def dashboard(card):
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT balance FROM users WHERE card_number=?", (card,))
+    cur.execute("SELECT id, pin_hash, name, balance FROM accounts WHERE card_id=?", (card_id,))
     row = cur.fetchone()
     conn.close()
-    if not row:
-        return render_template('error.html', message="Card not found!")
-    return render_template('dashboard.html', card=card, balance=row[0])
 
-@app.route('/withdraw', methods=['POST'])
+    if row and bcrypt.checkpw(pin, row[1]):
+        session["user"] = {"id": row[0], "name": row[2], "balance": row[3]}
+        play_sound("success")
+        return redirect(url_for("dashboard"))
+    else:
+        play_sound("error")
+        return redirect(url_for("login"))
+
+@app.route("/dashboard")
+def dashboard():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    user = session["user"]
+    texts = {k: get_text(k) for k in ["welcome","withdraw","deposit","balance","exit"]}
+    return render_template("dashboard.html", user=user, **texts)
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+@app.route("/withdraw", methods=["POST"])
 def withdraw():
-    card = request.form['card']
-    amount = float(request.form['amount'])
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("SELECT balance FROM users WHERE card_number=?", (card,))
-    row = cur.fetchone()
-    if not row:
-        return render_template('error.html', message="Card not found!")
-    balance = row[0]
-    if amount > balance:
-        return render_template('error.html', message="Insufficient balance!")
-    new_balance = balance - amount
-    cur.execute("UPDATE users SET balance=? WHERE card_number=?", (new_balance, card))
-    cur.execute("INSERT INTO transactions(card_number,type,amount,timestamp) VALUES(?,?,?,?)",
-                (card, 'Withdraw', amount, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('dashboard', card=card))
+    if "user" not in session": 
+        return redirect(url_for("login"))
+    conn = get_db(); cur = conn.cursor()
+    uid = session["user"]["id"]
+    cur.execute("UPDATE accounts SET balance=balance-1000 WHERE id=?", (uid,))
+    conn.commit(); conn.close()
+    play_sound("success")
+    return redirect(url_for("dashboard"))
 
-@app.route('/deposit', methods=['POST'])
+@app.route("/deposit", methods=["POST"])
 def deposit():
-    card = request.form['card']
-    amount = float(request.form['amount'])
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("SELECT balance FROM users WHERE card_number=?", (card,))
-    row = cur.fetchone()
-    if not row:
-        return render_template('error.html', message="Card not found!")
-    new_balance = row[0] + amount
-    cur.execute("UPDATE users SET balance=? WHERE card_number=?", (new_balance, card))
-    cur.execute("INSERT INTO transactions(card_number,type,amount,timestamp) VALUES(?,?,?,?)",
-                (card, 'Deposit', amount, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('dashboard', card=card))
+    if "user" not in session": 
+        return redirect(url_for("login"))
+    conn = get_db(); cur = conn.cursor()
+    uid = session["user"]["id"]
+    cur.execute("UPDATE accounts SET balance=balance+1000 WHERE id=?", (uid,))
+    conn.commit(); conn.close()
+    play_sound("success")
+    return redirect(url_for("dashboard"))
 
-@app.route('/history/<card>')
-def history(card):
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("SELECT type, amount, timestamp FROM transactions WHERE card_number=? ORDER BY id DESC LIMIT 10", (card,))
-    rows = cur.fetchall()
-    conn.close()
-    return render_template('history.html', card=card, transactions=rows)
+@app.route("/balance", methods=["POST"])
+def balance():
+    if "user" not in session": 
+        return redirect(url_for("login"))
+    play_sound("pin")
+    return redirect(url_for("dashboard"))
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
