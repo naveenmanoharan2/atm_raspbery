@@ -5,7 +5,6 @@ CREATE TABLE accounts (
   pin_hash BLOB,
   balance INTEGER DEFAULT 0
 );
-
 import sqlite3, bcrypt
 conn = sqlite3.connect('atm.db')
 cur = conn.cursor()
