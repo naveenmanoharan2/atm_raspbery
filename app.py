@@ -96,6 +96,7 @@ def dashboard():
     return render_template("dashboard.html", user=user, **texts)
 
 
+
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
