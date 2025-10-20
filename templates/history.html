@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Transaction History</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>📜 Transaction History for {{ card }}</h2>
+  {% if transactions %}
+  <table>
+    <tr><th>Type</th><th>Amount (AED)</th><th>Time</th></tr>
+    {% for t in transactions %}
+    <tr>
+      <td>{{ t[0] }}</td>
+      <td>{{ "%.2f"|format(t[1]) }}</td>
+      <td>{{ t[2] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No transactions yet.</p>
+  {% endif %}
+  <a class="btn" href="/dashboard/{{ card }}">Back</a>
+</body>
+</html>
