@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ATM Home</title>
+    <title>Error</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
-    <h1>🏧 Raspberry Pi ATM</h1>
-    <p><a href="{{ url_for('login') }}">Insert Your Card →</a></p>
+    <h3 style="color:red;">{{ message }}</h3>
+    <p><a href="/">Go back</a></p>
   </body>
 </html>
