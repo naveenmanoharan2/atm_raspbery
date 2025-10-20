@@ -85,8 +85,16 @@ def dashboard():
     if "user" not in session:
         return redirect(url_for("login"))
     user = session["user"]
+
+    # ensure balance is numeric
+    try:
+        user["balance"] = float(user["balance"])
+    except Exception:
+        user["balance"] = 0.0
+
     texts = {k: get_text(k) for k in ["welcome","withdraw","deposit","balance","exit"]}
     return render_template("dashboard.html", user=user, **texts)
+
 
 @app.route("/logout", methods=["POST"])
 def logout():
