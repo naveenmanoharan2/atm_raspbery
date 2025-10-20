@@ -11,3 +11,10 @@ cur = conn.cursor()
 cur.execute("INSERT INTO accounts (card_id,name,pin_hash,balance) VALUES (?,?,?,?)",
             ('1001','Naveen', bcrypt.hashpw(b'1234', bcrypt.gensalt()), 50000))
 conn.commit(); conn.close()
+CREATE TABLE accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  card_id TEXT UNIQUE,
+  name TEXT,
+  pin_hash BLOB,
+  balance INTEGER DEFAULT 0
+);
