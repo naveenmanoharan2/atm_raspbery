@@ -71,7 +71,7 @@ def logout():
 
 @app.route("/withdraw", methods=["POST"])
 def withdraw():
-    if "user" not in session": 
+    if "user" not in session: 
         return redirect(url_for("login"))
     conn = get_db(); cur = conn.cursor()
     uid = session["user"]["id"]
