@@ -82,7 +82,7 @@ def withdraw():
 
 @app.route("/deposit", methods=["POST"])
 def deposit():
-    if "user" not in session": 
+    if "user" not in session: 
         return redirect(url_for("login"))
     conn = get_db(); cur = conn.cursor()
     uid = session["user"]["id"]
@@ -93,7 +93,7 @@ def deposit():
 
 @app.route("/balance", methods=["POST"])
 def balance():
-    if "user" not in session": 
+    if "user" not in session: 
         return redirect(url_for("login"))
     play_sound("pin")
     return redirect(url_for("dashboard"))
