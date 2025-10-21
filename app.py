@@ -57,9 +57,12 @@ def withdraw():
         return redirect(url_for("dashboard"))
     uid = session["user"]["id"]
 
-    conn = get_db(); cur = conn.cursor()
+    conn = get_db()
+    cur = conn.cursor()
     cur.execute("UPDATE accounts SET balance = balance - 1000 WHERE id = ?", (uid,))
-    conn.commit(); conn.close()
+    print(f"Updated {cur.rowcount} rows for user {uid}")
+    conn.commit()
+    conn.close()
 
     play_sound("success")
     return redirect(url_for("dashboard"))
