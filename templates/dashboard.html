@@ -1,27 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
-  <h1 class="text-2xl mb-2">{{ welcome }}, {{ user.name }}</h1>
-  <h2 class="text-lg mb-6">Balance: ₹{{ user.balance }}</h2>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ATM Dashboard</title>
+<style>
+  :root {
+    --bg: #0a0f24;
+    --card: #111933;
+    --accent: #00aaff;
+    --muted: #7a7f87;
+    --danger: #e74c3c;
+    --success: #16a34a;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
 
-  <div class="grid grid-cols-2 gap-4 w-80">
-    <form action="/withdraw" method="post">
-      <button class="bg-blue-500 hover:bg-blue-600 w-full h-24 rounded-2xl text-xl">{{ withdraw }}</button>
-    </form>
-    <form action="/deposit" method="post">
-      <button class="bg-green-500 hover:bg-green-600 w-full h-24 rounded-2xl text-xl">{{ deposit }}</button>
-    </form>
-    <form action="/balance" method="post">
-      <button class="bg-yellow-500 hover:bg-yellow-600 w-full h-24 rounded-2xl text-xl">{{ balance }}</button>
-    </form>
-    <form action="/logout" method="post">
-      <button class="bg-red-500 hover:bg-red-600 w-full h-24 rounded-2xl text-xl">{{ exit }}</button>
-    </form>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  .atm-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+
+  .atm-container {
+    background: var(--card);
+    border-radius: 30px;
+    padding: 40px;
+    width: 90vw;
+    max-width: 700px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0, 170, 255, 0.3);
+  }
+
+  h1 {
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-size: 2.2em;
+  }
+
+  .balance-box {
+    background: rgba(0, 170, 255, 0.1);
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 1.6em;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+
+  .btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    padding: 25px;
+    font-size: 1.4em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  button:hover {
+    background: #0088cc;
+    transform: scale(1.05);
+  }
+
+  .exit-btn {
+    background: var(--danger);
+  }
+
+  .exit-btn:hover {
+    background: #b53025;
+  }
+
+  @media (max-width: 600px) {
+    .atm-container {
+      width: 95vw;
+      padding: 30px;
+    }
+
+    .btn-grid {
+      grid-template-columns: 1fr;
+    }
+
+    button {
+      padding: 18px;
+      font-size: 1.2em;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="atm-screen">
+    <div class="atm-container">
+      <h1>{{ welcome }}, {{ user.name }}</h1>
+      <div class="balance-box">Balance: ₹{{ user.balance }}</div>
+
+      <div class="btn-grid">
+        <form action="{{ url_for('withdraw') }}" method="post">
+          <button type="submit">{{ withdraw }}</button>
+        </form>
+        <form action="{{ url_for('deposit') }}" method="post">
+          <button type="submit">{{ deposit }}</button>
+        </form>
+        <form action="{{ url_for('balance') }}" method="post">
+          <button type="submit">{{ balance }}</button>
+        </form>
+        <form action="{{ url_for('logout') }}" method="post">
+          <button type="submit" class="exit-btn">{{ exit }}</button>
+        </form>
+      </div>
+    </div>
   </div>
 </body>
 </html>

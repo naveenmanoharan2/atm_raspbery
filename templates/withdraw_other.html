@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Enter Amount</title>
+<style>
+  :root {
+    --bg:#0a0f24; --card:#111933; --accent:#00aaff;
+    --danger:#e74c3c; font-family:"Inter",system-ui;
+  }
+  html,body{margin:0;height:100%;background:var(--bg);color:#fff;overflow:hidden;}
+  .atm-screen{display:flex;justify-content:center;align-items:center;height:100%;}
+  .atm-container{
+    background:var(--card);border-radius:30px;padding:40px;width:90vw;max-width:500px;
+    text-align:center;box-shadow:0 0 40px rgba(0,170,255,0.3);
+  }
+  h1{color:var(--accent);font-size:2em;margin-bottom:25px;}
+  input[type="number"]{
+    font-size:1.6em;padding:15px;width:80%;border:none;border-radius:12px;text-align:center;
+    outline:none;margin-bottom:25px;
+  }
+  button{
+    background:var(--accent);color:#fff;border:none;border-radius:15px;padding:18px 40px;
+    font-size:1.3em;font-weight:bold;cursor:pointer;transition:all 0.2s;
+  }
+  button:hover{background:#0088cc;transform:scale(1.05);}
+  .back-btn{background:var(--danger);margin-top:15px;}
+  .back-btn:hover{background:#b53025;}
+</style>
+</head>
+<body>
+  <div class="atm-screen">
+    <div class="atm-container">
+      <h1>Enter Amount to Withdraw</h1>
+      <form action="{{ url_for('withdraw_other') }}" method="post">
+        <input type="number" name="amount" min="1" required placeholder="Enter amount (₹)">
+        <br>
+        <button type="submit">Withdraw</button>
+      </form>
+      <form action="{{ url_for('withdraw') }}" method="get">
+        <button type="submit" class="back-btn">Back</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
